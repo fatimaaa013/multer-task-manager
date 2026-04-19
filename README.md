@@ -7,7 +7,7 @@ A Node.js task manager with file upload using Multer, JWT authentication, and CR
 ## 🚀 Features
 
 - 🔐 User Signup & Login (JWT Authentication)
-- 📂 File Upload (Images / PDFs) using Multer
+- 📂 File Upload (Images) using Multer
 - 📝 Add Tasks with file attachments
 - 🗑️ Delete Tasks
 - 📄 View uploaded files
@@ -63,6 +63,16 @@ node server/app.js
 3. Open in browser:
 
 Open `client/login.html` in your browser
+
+---
+
+## 📸 Screenshots
+
+### Login Page
+![Login](screenshots/login-page.png)
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
 
 ## 👩‍💻 Author
 
