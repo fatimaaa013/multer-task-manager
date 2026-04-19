@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login</title>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg,
+                    #f8fafc 0%,
+                    #f1f5f9 50%,
+                    #e9edf3 100%);
+            margin: 0;
+
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            width: 320px;
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(68, 93, 139, 0.08);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 18px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: #fafafa;
+            transition: 0.2s;
+        }
+
+        input:focus {
+            border-color: #6366f1;
+            background: white;
+            outline: none;
+        } */
+        input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            border-color: #445d8b;
+            background: white;
+
+            box-shadow: 0 0 0 3px rgba(68, 93, 139, 0.1);
+            outline: none;
+        }
+
+        button {
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .login-btn {
+            background: #445d8b;
+            color: white;
+
+            font-weight: 600;
+            /* 🔥 stronger */
+        }
+
+        .login-btn:hover {
+            background: #2b3e5f;
+        }
+
+
+        .signup-btn {
+            background: #f8fafc;
+            border: 1px solid #d1d5db;
+            color: #374151;
+
+            font-weight: 500;
+        }
+
+        .signup-btn:hover {
+            background: #eef2f7;
+            border-color: #9ca3af;
+        }
+
+        .divider {
+            margin: 20px 0;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        #message {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+
+        <p style="text-align:center; font-size:20px; color:#6b7280;">
+            Login to continue
+        </p>
+
+        <p id="message"></p>
+
+        <!-- LOGIN -->
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required />
+            <input type="password" id="password" placeholder="Password" required />
+            <button class="login-btn">Login</button>
+        </form>
+
+        <div class="divider">or create account</div>
+
+        <!-- SIGNUP -->
+        <form id="signupForm">
+            <input type="text" id="signupName" placeholder="Name" required />
+            <input type="email" id="signupEmail" placeholder="Email" required />
+            <input type="password" id="signupPassword" placeholder="Password" required />
+            <button class="signup-btn">Signup</button>
+        </form>
+
+    </div>
+
+    <script>
+        const loginForm = document.getElementById("loginForm");
+        const signupForm = document.getElementById("signupForm");
+        const msg = document.getElementById("message");
+
+        // LOGIN
+        loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const res = await fetch("http://localhost:3000/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    msg.innerText = data.message;
+                    msg.style.color = "#ef4444";
+                    return;
+                }
+
+                msg.innerText = "Login successful!";
+                msg.style.color = "#22c55e";
+
+                localStorage.setItem("token", data.token);
+
+                setTimeout(() => {
+                    window.location.href = "dashboard.html";
+                }, 800);
+
+            } catch {
+                msg.innerText = "Server not running";
+                msg.style.color = "#ef4444";
+            }
+        });
+
+        // SIGNUP
+        signupForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById("signupName").value;
+            const email = document.getElementById("signupEmail").value;
+            const password = document.getElementById("signupPassword").value;
+
+            const res = await fetch("http://localhost:3000/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password })
+            });
+
+            const data = await res.json();
+
+            msg.innerText = data.message;
+            msg.style.color = res.ok ? "#22c55e" : "#ef4444";
+        });
+    </script>
+
+</body>
+
+</html>

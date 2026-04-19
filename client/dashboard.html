@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg,
+                    #f8fafc 0%,
+                    #f1f5f9 50%,
+                    #e9edf3 100%);
+            margin: 0;
+        }
+
+        /* CONTAINER */
+        .container {
+            width: 75%;
+            margin: 40px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(68, 93, 139, 0.08);
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        /* FORM */
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        /* INPUT */
+        input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: #fafafa;
+            transition: 0.2s;
+        }
+
+        input:focus {
+            border-color: #445d8b;
+            /* 🔥 same as login */
+            background: white;
+            outline: none;
+        }
+
+        /* BUTTON BASE */
+        button {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        /* ADD BUTTON (same tone as login) */
+        .add-btn {
+            background: #445d8b;
+            color: white;
+        }
+
+        .add-btn:hover {
+            background: #2b3e5f;
+        }
+
+        /* LOGOUT BUTTON (neutral like signup) */
+        .logout-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #374151;
+
+            padding: 8px 14px;
+            border-radius: 8px;
+
+            font-size: 14px;
+            transition: 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #eef2f7;
+            color: #111827;
+        }
+
+        /* CARD CONTAINER */
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        /* CARD */
+        .card {
+            width: 240px;
+            padding: 14px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #f0f0f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            transition: 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* IMAGE */
+        .card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+
+        /* TITLE */
+        .card h3 {
+            margin: 6px 0 2px;
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.3;
+            margin-bottom: 4px;
+        }
+
+        /* DELETE BUTTON */
+        .card button {
+            background: #fff5f5;
+            border: 1px solid #f1aeb5;
+            color: #b42318;
+
+            padding: 8px 14px;
+            font-size: 13.5px;
+            border-radius: 8px;
+
+            width: fit-content;
+            margin: 8px auto 0;
+
+            display: block;
+            transition: 0.2s ease;
+        }
+
+        .card button:hover {
+            background: #ffe3e3;
+            border-color: #f28b82;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <!-- <h2>Todo App</h2> -->
+            <h2 id="welcomeText"></h2>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <form id="form" class="form-row">
+            <input type="text" name="name" placeholder="Task name" required />
+            <input type="file" name="image" accept="image/*" required />
+            <button class="add-btn">Add</button>
+        </form>
+
+        <div id="tasks" class="card-container"></div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            window.location.href = "login.html";
+        }
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userName = payload.name;
+        document.getElementById("welcomeText").innerText = `Welcome, ${userName}`;
+        const form = document.getElementById("form");
+        const taskContainer = document.getElementById("tasks");
+        const tasks = [];
+
+        async function loadTasks() {
+            const res = await fetch("http://localhost:3000/tasks");
+            const data = await res.json();
+
+            tasks.length = 0;
+            data.forEach(t => tasks.push(t));
+
+            renderTasks();
+        }
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            const res = await fetch("http://localhost:3000/upload", {
+                method: "POST",
+                headers: { Authorization: token },
+                body: formData
+            });
+
+            const data = await res.json();
+
+            tasks.push(data);
+            renderTasks();
+
+            form.reset();
+        });
+
+        function renderTasks() {
+            taskContainer.innerHTML = "";
+
+            tasks.forEach(task => {
+                const card = document.createElement("div");
+                card.className = "card";
+
+                let element;
+
+                // ✅ Handle PDF vs Image
+                if (task.image.endsWith(".pdf")) {
+                    element = document.createElement("a");
+                    element.href = `http://localhost:3000/uploads/${task.image}`;
+                    element.innerText = "📄 View PDF";
+                    element.target = "_blank";
+                } else {
+                    element = document.createElement("img");
+                    element.src = `http://localhost:3000/uploads/${task.image}`;
+                }
+
+                const title = document.createElement("h3");
+                title.innerText = task.name;
+
+                // 🔥 DELETE BUTTON BACK
+                const deleteBtn = document.createElement("button");
+                deleteBtn.innerText = "Delete";
+
+                deleteBtn.onclick = async () => {
+                    await fetch(`http://localhost:3000/delete/${task.id}`, {
+                        method: "DELETE"
+                    });
+
+                    // remove from UI instantly
+                    const index = tasks.findIndex(t => t.id === task.id);
+                    tasks.splice(index, 1);
+
+                    renderTasks();
+                };
+
+                card.appendChild(element);
+                card.appendChild(title);
+                card.appendChild(deleteBtn);
+
+                taskContainer.appendChild(card);
+            });
+        }
+        function logout() {
+            localStorage.removeItem("token");
+            window.location.href = "login.html";
+        }
+
+        loadTasks();
+    </script>
+
+</body>
+
+</html>
